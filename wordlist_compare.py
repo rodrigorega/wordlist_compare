@@ -27,10 +27,10 @@ License: CC-BY-SA 3.0 license (http://creativecommons.org/licenses/by/3.0/
 
 ###################### CONFIGURATION START ###########################
 
-leak_file = 'Gmail.txt'
+leak_file = 'leak_file'
 leak_file_split = ':'
-contacts_file = 'lista_contactos.txt'
-match_file = 'encontrados.txt'
+contacts_file = 'contacts_file'
+match_file = 'matched.txt'
 
 # In normal mode, a 150MB file is using +300MB of RAM, if you are out of RAM,
 # use big_file_mode. big_file_mode is slower
