@@ -4,22 +4,17 @@ In 2014-09-10 a file named "google_5000000.7z" was leaked with 5000000 gmail
 emails and passwords. I wrote this script to check if my email accounts were
 in that leaked file.
 
-No comments in the code by the time, sorry.
-
 Dependencies:
-    - leak_file: csv file in format: my@email[leak_file_split]password
-    - contacts_file: txt with emails
+    - leak_file
+    - contacts_file
 
 Usage:
     - Download wordlsit_compare.py
     - Edit configuration options in this script.
-    - python compare.py
+    - In console, run: python compare.py
 
 Output:
-    - match_file: csv file with emails matched in "leak_file" and "contacts_file".
-
-Changelog:
-    - 2014-09-10: First release.
+    - match_file
 
 Author: Rodrigo Rega <contacto@rodrigorega.es>
 License: CC-BY-SA 3.0 license (http://creativecommons.org/licenses/by/3.0/    
@@ -27,9 +22,16 @@ License: CC-BY-SA 3.0 license (http://creativecommons.org/licenses/by/3.0/
 
 ###################### CONFIGURATION START ###########################
 
+# CSV with leaked data. File in format: my@email[leak_file_split]password
 leak_file = 'Gmail.txt'
+
+# CSV separator used in leak_file
 leak_file_split = ':'
+
+# File with your emails (one per line)
 contacts_file = 'my_emails_list.txt'
+
+# File were matched emails in "leak_file" and "contacts_file" "will be saved
 match_file = 'my_leaked_emails.txt'
 
 # In normal mode, a 150MB file is using +300MB of RAM, if you are out of RAM,
