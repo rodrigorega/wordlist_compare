@@ -223,5 +223,5 @@ pip-log.txt
 !README
 !.gitignore
 !wordlist_compare.py
-!contacts_file_example
-!leak_file_example
+!my_emails_list.txt_example
+!Gmail.txt_example
