@@ -109,10 +109,13 @@ def _read_file_to_memory(filename):
     
     Return: contents of readed file
     '''
-    f_content = open(filename, 'rU')
-    content_list = f_content.readlines()
-    f_content.close()
-    return content_list
+    try:
+        content_list = open(filename, 'rU').readlines()
+        return content_list
+    except:
+        _print_file_open_error(filename)
+        _print_exiting()
+        exit(1)
 
 def _add_to_match_file(data):
     '''
@@ -120,9 +123,46 @@ def _add_to_match_file(data):
     
     Return: None
     '''
-    f = open(match_file, "a")
-    f.write("%s\n" %data)
+    
+    try:
+        f = open(match_file, "a")
+    except:
+        _print_file_open_error(filename)
+        _print_exiting()
+        exit(1)
+        
+    try:
+        f.write("%s\n" %data)
+    except:
+        _print_file_open_error(filename)
+        _print_exiting()
+        exit(1)
+        
     f.close()
+
+def _print_file_open_error(filename):
+    '''
+    Show unable to open in console
+    
+    Return: filename
+    '''
+    print "[!] Unable to open  %s " % filename
+    
+def _print_file_write_error(filename):
+    '''
+    Show write error in console
+    
+    Return: filename
+    '''
+    print "[!] Unable to write to  %s " % filename
+
+def _print_exiting():
+    '''
+    Show exiting in console
+    
+    Return: filename
+    '''
+    print "[*] Exiting"
 
 def _print_job_start():
     '''
