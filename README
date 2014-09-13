@@ -3,6 +3,7 @@ emails and passwords. I wrote this script to check if my email accounts were
 in that leaked file.
 
 Dependencies:
+    - python 2.7
     - leak_file
     - contacts_file
 
