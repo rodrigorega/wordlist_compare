@@ -118,7 +118,7 @@ def _read_file_to_memory(filename):
     try:
         content_list = open(filename, 'rU').readlines()
         return content_list
-    except:
+    except IOError:
         _print_file_open_error(filename)
         _print_exiting()
         exit(1)
@@ -132,20 +132,20 @@ def _add_to_match_file(data):
     '''
 
     try:
-        f = open(match_file, "a")
-    except:
+        f_matchfile = open(match_file, "a")
+    except IOError:
         _print_file_open_error(match_file)
         _print_exiting()
         exit(1)
 
     try:
-        f.write("%s\n" % data)
-    except:
+        f_matchfile.write("%s\n" % data)
+    except IOError:
         _print_file_open_error(match_file)
         _print_exiting()
         exit(1)
 
-    f.close()
+    f_matchfile.close()
 
 
 def _print_file_open_error(filename):
@@ -186,13 +186,14 @@ def _print_job_start():
     return t1
 
 
-def _print_job_end(t0):
+def _print_job_end(process_duration):
     '''
     Show end message in console
 
     Return: None
     '''
-    print("[*] Finish. Duration: %f seconds\n" % (time.clock()-t0))
+    print "[*] Finish. Duration: %f seconds\n" % (time.clock()
+                                                  - process_duration)
 
 
 def _print_job_status(contact_number, contact):
@@ -213,7 +214,7 @@ def _print_match_found(matched):
 
     Return: None
     '''
-    print ("[!] Email match in leaked file: %s" % (matched))
+    print "[!] Email match in leaked file: %s" % (matched)
 
 
 def _print_job_time(t1):
@@ -222,7 +223,7 @@ def _print_job_time(t1):
 
     Return: None
     '''
-    print("[-] Search duration: %f seconds\n" % (time.clock()-t1))
+    print "[-] Search duration: %f seconds\n" % (time.clock()-t1)
 
 
 if __name__ == "__main__":
