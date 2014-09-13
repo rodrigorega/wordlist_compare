@@ -2,24 +2,15 @@
 # -*- coding: utf-8 -*-
 
 '''
-In 2014-09-10 a file named "google_5000000.7z" was leaked with 5000000 gmail
-emails and passwords. I wrote this script to check if my email accounts were
-in that leaked file.
 
-Dependencies:
-    - leak_file
-    - contacts_file
+wordlist_compare.py
 
-Usage:
-    - Download wordlsit_compare.py
-    - Edit configuration options in this script.
-    - In console, run: python compare.py
+See README file to get info about this script.
 
-Output:
-    - match_file
-
+Script Website: https://github.com/rodrigorega/wordlist_compare
 Author: Rodrigo Rega <contacto@rodrigorega.es>
 License: CC-BY-SA 3.0 license (http://creativecommons.org/licenses/by/3.0/
+
 '''
 
 # ##################### CONFIGURATION START ###################################
