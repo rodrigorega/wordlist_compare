@@ -1,4 +1,6 @@
 ﻿#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 '''
 In 2014-09-10 a file named "google_5000000.7z" was leaked with 5000000 gmail
 emails and passwords. I wrote this script to check if my email accounts were
