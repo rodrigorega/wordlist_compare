@@ -37,6 +37,7 @@ case_sensitive = True
 # ##################### CONFIGURATION END #####################################
 
 import time
+import sys  # needed for get python version and argv
 
 contacts_file_len = sum(1 for line in open(contacts_file))
 
@@ -217,15 +218,52 @@ def _print_job_time(job_timer):
     print "[-] Search duration: %f seconds\n" % (time.clock()-job_timer)
 
 
+def _print_python_version_error():
+    '''
+    Show python version error
+
+    Return: None
+    '''
+    print '[!] You must use Python 2,7 or higher'
+
+
+def _validate_python_version():
+    '''
+    Check Python version
+
+    Return: True if running version is valid
+    '''
+    major, minor, micro, releaselevel, serial = sys.version_info
+    if (major, minor) < (2, 7):
+        return False
+    else:
+        return True
+
+
+def _select_process_mode():
+    '''
+    Select work mode
+
+    Return: None
+    '''
+    if big_file_mode:
+        search_leak_file_big_file()
+    else:
+        search_leak_file()
+
+
 if __name__ == "__main__":
     '''
     Main
 
     Return: None
     '''
-    process_timer = _print_job_start()
-    if big_file_mode:
-        search_leak_file_big_file()
+
+    if _validate_python_version():
+        _select_process_mode()
+        process_timer = _print_job_start()
+        _print_job_end(process_timer)
     else:
-        search_leak_file()
-    _print_job_end(process_timer)
+        _print_python_version_error()
+        _print_exiting()
+        sys.exit(2)
