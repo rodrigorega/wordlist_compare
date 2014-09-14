@@ -51,18 +51,18 @@ def search_leak_file():
     leaks_list = _read_file_to_memory(leak_file)
 
     for i, contact in enumerate(contacts_list):
-        contact = _converte_to_sensitive_if_configured(contact)
+        contact = _check_case_sensitive(contact)
         _print_job_status(i, contact)
-        t1 = time.clock()
+        job_timer = time.clock()
 
         for leak in leaks_list:
-            leak = _converte_to_sensitive_if_configured(leak)
+            leak = _check_case_sensitive(leak)
 
             # if contact == leak.split(leak_file_split)[0]:
             if leak.startswith(contact):
                 _print_match_found(leak)
                 _add_to_match_file(leak)
-        _print_job_time(t1)
+        _print_job_time(job_timer)
 
 
 def search_leak_file_big_file():
@@ -73,22 +73,22 @@ def search_leak_file_big_file():
     '''
     with open(contacts_file, 'rU') as contacts_list:
         for i, contact in enumerate(contacts_list):
-            contact = _converte_to_sensitive_if_configured(contact)
+            contact = _check_case_sensitive(contact)
             _print_job_status(i, contact)
-            t1 = time.clock()
+            job_timer = time.clock()
 
             with open(leak_file) as leaks_list:
                 for leak in leaks_list:
-                    leak = _converte_to_sensitive_if_configured(leak)
+                    leak = _check_case_sensitive(leak)
 
                     # if contact == leak.split(leak_file_split)[0]:
                     if leak.startswith(contact):
                         _print_match_found(leak)
                         _add_to_match_file(leak)
-            _print_job_time(t1)
+            _print_job_time(job_timer)
 
 
-def _converte_to_sensitive_if_configured(one_string):
+def _check_case_sensitive(one_string):
     '''
     Convert string to lower if configured
 
@@ -172,9 +172,9 @@ def _print_job_start():
 
     Return: start time timer
     '''
-    t1 = time.clock()
+    job_timer = time.clock()
     print "[*] Starting...\n"
-    return t1
+    return job_timer
 
 
 def _print_job_end(process_duration):
@@ -208,13 +208,13 @@ def _print_match_found(matched):
     print "[!] Email match in leaked file: %s" % (matched)
 
 
-def _print_job_time(t1):
+def _print_job_time(job_timer):
     '''
     Show job duration time in console
 
     Return: None
     '''
-    print "[-] Search duration: %f seconds\n" % (time.clock()-t1)
+    print "[-] Search duration: %f seconds\n" % (time.clock()-job_timer)
 
 
 if __name__ == "__main__":
@@ -223,9 +223,9 @@ if __name__ == "__main__":
 
     Return: None
     '''
-    t0 = _print_job_start()
+    process_timer = _print_job_start()
     if big_file_mode:
         search_leak_file_big_file()
     else:
         search_leak_file()
-    _print_job_end(t0)
+    _print_job_end(process_timer)
