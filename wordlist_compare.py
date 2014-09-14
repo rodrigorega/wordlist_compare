@@ -5,7 +5,30 @@
 
 wordlist_compare.py
 
-See README file to get info about this script.
+Usage:
+  wordlist_compare.py -l LEAK_LIST -m MY_LIST [-o OUTPUT_LIST]
+                      [-s CSV_SEPARATOR] [--lowmemorymode] [--casesensitive]
+  wordlist_compare.py --help
+
+Options:
+  -l LEAK_LIST, --leaklist=LEAK_LIST  CSV with leaked data. This file must be
+                                      in format: my@email:password
+
+  -m MY_LIST, --mylist=MY_LIST        File with your emails (one per line)
+
+  -o OUTPUT_LIST, --output=OUTPUT_LIST  File were matched emails in LEAK_LIST
+                                        and MY_EMAIL_LIST will be saved
+                                        [default: my_leaked_emails.txt]
+
+  -s CSV_SEPARATOR, --separator=CSV_SEPARATOR  CSV separator used in LEAK_LIST
+                                               [default: :]
+
+  -w, --lowmemorymode  Use this if you are comparing big files and your PC is
+                       out of RAM. This mode is solwer. [default: False]
+
+  -c, --casesensitive  Enable case sensitive. This is faster. [default: False]
+
+  -h, --help           Show this help screen.
 
 Script Website: https://github.com/rodrigorega/wordlist_compare
 Author: Rodrigo Rega <contacto@rodrigorega.es>
@@ -13,33 +36,19 @@ License: CC-BY-SA 3.0 license (http://creativecommons.org/licenses/by/3.0/
 
 '''
 
-# ##################### CONFIGURATION START ###################################
-
-# CSV with leaked data. File in format: my@email[leak_file_split]password
-leak_file = 'Gmail.txt'
-
-# CSV separator used in leak_file
-leak_file_split = ':'
-
-# File with your emails (one per line)
-contacts_file = 'my_emails_list.txt'
-
-# File were matched emails in "leak_file" and "contacts_file" "will be saved
-match_file = 'my_leaked_emails.txt'
-
-# In normal mode, a 150MB file is using +300MB of RAM, if you are out of RAM,
-# use big_file_mode. big_file_mode is slower
-big_file_mode = False
-
-# Case sensitive is a little faster
-case_sensitive = True
-
-# ##################### CONFIGURATION END #####################################
-
 import time
 import sys  # needed for get python version and argv
+from docopt import docopt
 
-contacts_file_len = sum(1 for line in open(contacts_file))
+
+leak_file = '' # Leaked list. Format: my@email[leak_file_split]password
+leak_file_split = '' # CSV separator used in leak_file
+contacts_file = ''# Your email list (one per line)
+match_file = '' # Output file with matched list
+case_sensitive = '' # Case sensitive is a little faster
+# In normal mode, a 150MB file is using +300MB of RAM, if you are out of RAM,
+# use big_file_mode. big_file_mode is slower
+big_file_mode = ''
 
 
 def search_leak_file():
@@ -240,9 +249,9 @@ def _validate_python_version():
         return True
 
 
-def _select_process_mode():
+def _start_process():
     '''
-    Select work mode
+    Select work mode and start process
 
     Return: None
     '''
@@ -258,11 +267,20 @@ if __name__ == "__main__":
 
     Return: None
     '''
-
     if _validate_python_version():
-        _select_process_mode()
+        arguments = docopt(__doc__, version='1.0.0rc2')
+        big_file_mode = arguments['--lowmemorymode']
+        case_sensitive = arguments['--casesensitive']
+        leak_file = arguments['--leaklist']
+        contacts_file = arguments['--mylist']
+        leak_file_split = arguments['--separator']
+        match_file = arguments['--output']
+        contacts_file_len = sum(1 for line in open(contacts_file))
+
+        _start_process()
         process_timer = _print_job_start()
         _print_job_end(process_timer)
+
     else:
         _print_python_version_error()
         _print_exiting()

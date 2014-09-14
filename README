@@ -4,16 +4,17 @@ in that leaked file.
 
 Dependencies:
     - python 2.7
-    - leak_file
-    - contacts_file
+    - docopt (Install it with: pip install docopt)
+    - LEAK_LIST: File with leaked emails
+    - MY_LIST: File with your emails
 
 Usage:
-    - Download wordlsit_compare.py
-    - Edit configuration options in this script.
-    - In console, run: python compare.py
+    - python wordlist_compare.py -l LEAK_LIST -m MY_LIST [-o OUTPUT_LIST]
+                             [-s CSV_SEPARATOR] [--lowmemorymode] [--separator]
+    - python wordlist_compare.py --help
 
 Output:
-    - match_file
+    - OUTPUT_LIST file with matched emails.
 
 Script Website: https://github.com/rodrigorega/wordlist_compare
 Author: Rodrigo Rega <contacto@rodrigorega.es>
