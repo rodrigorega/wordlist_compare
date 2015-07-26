@@ -45,7 +45,7 @@ leak_file_split = ':' # CSV separator used in leak_file
 
 def __search_leak_file(): # TODO: Rename to __search_leaks
     '''
-    Compare lines between two files.
+    Compares lines between two files.
     
     Return: None
     '''
@@ -54,6 +54,7 @@ def __search_leak_file(): # TODO: Rename to __search_leaks
     #Check if files are empty
     accounts_file_empty = os.stat(accounts_file).st_size == 0
     leaks_file_empty = os.stat(leaks_file).st_size == 0
+    current_account_number = 0
     
     if (not accounts_file_empty and not leaks_file_empty):
         try:
@@ -65,6 +66,9 @@ def __search_leak_file(): # TODO: Rename to __search_leaks
                     #TODO: Windowing for files >4gb in python 32b?
                     maf = mmap.mmap(af.fileno(), 0, prot=mmap.PROT_READ)
                     for account in iter(maf.readline, ''):
+                        current_account_number = current_account_number + 1
+                        __print_job_status(current_account_number, 
+                                           account.strip())
                         current_account_fomatted = account.strip().lower()
                         
                         mlf.seek(0)
@@ -76,6 +80,7 @@ def __search_leak_file(): # TODO: Rename to __search_leaks
                                 break
 
             if(matches):
+                print '\n[!] Matches:'
                 __print_list(matches)
                 if(output_file):
                     __write_to_output_file(matches)
@@ -98,6 +103,7 @@ def __print_list(l):
     '''
     for item in l:
         print '- {0}'.format(item)
+    print
         
 def __handle_Exception(ex):
     '''
@@ -111,7 +117,7 @@ def __handle_Exception(ex):
 
 def __write_to_output_file(matches_list):
     '''
-    Append one line to otput file
+    Appends a list to output file.
 
     Return: None
     '''
@@ -126,7 +132,7 @@ def __write_to_output_file(matches_list):
 
 def __print_file_open_error(filename):
     '''
-    Show unable to open in console
+    Displays "unable to open file" error.
 
     Return: filename
     '''
@@ -135,7 +141,7 @@ def __print_file_open_error(filename):
 
 def __exit_program():
     '''
-    Show exiting in console
+    Displays "exiting" message.
 
     Return: filename
     '''
@@ -145,7 +151,7 @@ def __exit_program():
 
 def __print_job_start():
     '''
-    Show start message in console
+    Displays a start message.
 
     Return: start time timer
     '''
@@ -156,7 +162,7 @@ def __print_job_start():
 
 def __print_job_end(process_duration):
     '''
-    Show end message in console
+    Displays a end message.
 
     Return: None
     '''
@@ -164,21 +170,20 @@ def __print_job_end(process_duration):
                                                         - process_duration)
 
 
-def __print_job_status(contact_number, contact):
+def __print_job_status(current_account_number, account):
     '''
-    Show status job info in console
+    Displays a status job info message.
 
     Return: None
     '''
-    print '[*] Processing {0} of {1}: {2}'.format(contact_number + 1,
+    print '[*] Processing {0}/{1}: {2}'.format(current_account_number,
                                                   accounts_file_lines,
-                                                  contact.split(csv_separator)
-                                                  [0].lower())
+                                                  account)
 
 
 def __print_match_found(matched):
     '''
-    Show matched job  in console
+    Displays a  "matched job" message.
 
     Return: None
     '''
@@ -187,7 +192,7 @@ def __print_match_found(matched):
 
 def __print_job_time(job_timer):
     '''
-    Show job duration time in console
+    DIsplays job duration timer.
 
     Return: None
     '''
@@ -196,7 +201,7 @@ def __print_job_time(job_timer):
 
 def __print_python_version_error():
     '''
-    Show python version error
+    Displays a python version error.
 
     Return: None
     '''
@@ -205,7 +210,7 @@ def __print_python_version_error():
 
 def __validate_python_version():
     '''
-    Check Python version
+    Checks Python version
 
     Return: True if running version is valid
     '''
@@ -214,22 +219,13 @@ def __validate_python_version():
         return False
     else:
         return True
-
-
-def __start_process():
-    '''
-    Select work mode and start process
-
-    Return: None
-    '''
-    __search_leak_file()
         
         
 def __get_file_len(f):
     '''
-    __get_file_len
+    Gets the number of non blank lines of a file.
     
-    Return: number of non blank num_lines in file.
+    Return: number of non blank num_lines in a file.
     '''
     num_lines = 0
     
@@ -256,7 +252,7 @@ if __name__ == "__main__":
         accounts_file_lines = __get_file_len(accounts_file)
 
         process_timer = __print_job_start()
-        __start_process()
+        __search_leak_file()
         __print_job_end(process_timer)
 
     else:
