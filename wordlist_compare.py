@@ -64,7 +64,7 @@ def __search_leak_file(): # TODO: Rename to __search_leaks
                 with open(accounts_file,'rU') as af:
                     # memory-map the file, size 0 means whole size
                     #TODO: Windowing for files >4gb in python 32b?
-                    maf = mmap.mmap(af.fileno(), 0, prot=mmap.PROT_READ)
+                    maf = mmap.mmap(af.fileno(), 0, access=mmap.ACCESS_READ)
                     for account in iter(maf.readline, ''):
                         current_account_number = current_account_number + 1
                         __print_job_status(current_account_number, 
