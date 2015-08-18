@@ -1,13 +1,13 @@
-﻿#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# _*_ coding:utf-8 _*_
 
 '''
 
 wordlist_compare.py
 
 Usage:
-  wordlist_compare.py -l LEAK_LIST -m MY_LIST [-o OUTPUT_LIST]
-                      [-s CSV_SEPARATOR] [--lowmemorymode] [--casesensitive]
+  wordlist_compare.py -l LEAK_LIST -m MY_LIST [-o OUTPUT_LIST] 
+                    [-s CSV_SEPARATOR]
   wordlist_compare.py --help
 
 Options:
@@ -19,14 +19,8 @@ Options:
   -o OUTPUT_LIST, --output=OUTPUT_LIST  File were matched emails in LEAK_LIST
                                         and MY_EMAIL_LIST will be saved
                                         [default: my_leaked_emails.txt]
-
-  -s CSV_SEPARATOR, --separator=CSV_SEPARATOR  CSV separator used in LEAK_LIST
-                                               [default: :]
-
-  -w, --lowmemorymode  Use this if you are comparing big files and your PC is
-                       out of RAM. This mode is solwer. [default: False]
-
-  -c, --casesensitive  Enable case sensitive. This is faster. [default: False]
+  -s CSV_SEPARATOR, --separator=CSV_SEPARATOR CSV separator used in LEAK_LIST
+                                        [default: :]
 
   -h, --help           Show this help screen.
 
@@ -39,206 +33,184 @@ License: CC-BY-SA 3.0 license (http://creativecommons.org/licenses/by/3.0/
 import time
 import sys  # needed for get python version and argv
 from docopt import docopt
+import mmap
+import os
 
 
-leak_file = '' # Leaked list. Format: my@email[leak_file_split]password
-leak_file_split = '' # CSV separator used in leak_file
-contacts_file = ''# Your email list (one per line)
-match_file = '' # Output file with matched list
-case_sensitive = '' # Case sensitive is a little faster
-# In normal mode, a 150MB file is using +300MB of RAM, if you are out of RAM,
-# use big_file_mode. big_file_mode is slower
-big_file_mode = ''
+leaks_file = '' # Leaked list. Format: my@email[csv_separator]password
+accounts_file = ''# Your email list (one per line)
+output_file = '' # Output file with matched list
+leak_file_split = ':' # CSV separator used in leak_file
 
 
-def search_leak_file():
+def __search_leak_file(): # TODO: Rename to __search_leaks
     '''
-    Compare lines in 2 files
-
+    Compares lines between two files.
+    
     Return: None
     '''
-    contacts_list = _read_file_to_memory(contacts_file)
-    leaks_list = _read_file_to_memory(leak_file)
+    matches = []
+    
+    #Check if files are empty
+    accounts_file_empty = os.stat(accounts_file).st_size == 0
+    leaks_file_empty = os.stat(leaks_file).st_size == 0
+    current_account_number = 0
+    
+    if (not accounts_file_empty and not leaks_file_empty):
+        try:
+            with open(leaks_file, 'rU') as lf:
+                mlf = mmap.mmap(lf.fileno(), 0, prot=mmap.PROT_READ)
 
-    for i, contact in enumerate(contacts_list):
-        contact = _check_case_sensitive(contact)
-        _print_job_status(i, contact)
-        job_timer = time.clock()
+                with open(accounts_file,'rU') as af:
+                    # memory-map the file, size 0 means whole size
+                    #TODO: Windowing for files >4gb in python 32b?
+                    maf = mmap.mmap(af.fileno(), 0, access=mmap.ACCESS_READ)
+                    for account in iter(maf.readline, ''):
+                        current_account_number = current_account_number + 1
+                        __print_job_status(current_account_number, 
+                                           account.strip())
+                        current_account_fomatted = account.strip().lower()
+                        
+                        mlf.seek(0)
+                        
+                        for leaked_account in iter(mlf.readline, ''):
+                            current_leaked_account_formatted = leaked_account.split(leak_file_split)[0].strip().lower()
+                            if(current_account_fomatted == current_leaked_account_formatted):
+                                matches.append(account.strip())
+                                break
 
-        for leak in leaks_list:
-            leak = _check_case_sensitive(leak)
-
-            # if contact == leak.split(leak_file_split)[0]:
-            if leak.startswith(contact):
-                _print_match_found(leak)
-                _add_to_match_file(leak)
-        _print_job_time(job_timer)
-
-
-def search_leak_file_big_file():
-    '''
-    Compare lines in 2 files, version for big files (or for low memory RAM)
-
-    Return: None
-    '''
-    with open(contacts_file, 'rU') as contacts_list:
-        for i, contact in enumerate(contacts_list):
-            contact = _check_case_sensitive(contact)
-            _print_job_status(i, contact)
-            job_timer = time.clock()
-
-            with open(leak_file) as leaks_list:
-                for leak in leaks_list:
-                    leak = _check_case_sensitive(leak)
-
-                    # if contact == leak.split(leak_file_split)[0]:
-                    if leak.startswith(contact):
-                        _print_match_found(leak)
-                        _add_to_match_file(leak)
-            _print_job_time(job_timer)
-
-
-def _check_case_sensitive(one_string):
-    '''
-    Convert string to lower if configured
-
-    Return: same string or lowered
-    '''
-    if case_sensitive:
-        return one_string.rstrip()
+            if(matches):
+                print '\n[!] Matches:'
+                __print_list(matches)
+                if(output_file):
+                    __write_to_output_file(matches)
+            else:
+                print '[*] No matches found.' 
+                
+        except Exception as ex:
+            __handle_Exception(ex)
     else:
-        return one_string.lower().rstrip()
+        if accounts_file_empty:
+            print '[!] {0} is empty'.format(accounts_file)
+        if leaks_file_empty:
+            print '[!] {0} is empty'.format(leaks_file)
 
-
-def _read_file_to_memory(filename):
+def __print_list(l):
     '''
-    Get file contents and store it in RAM
-
-    Return: contents of readed file
+    Prints a list in a nice format.
+    
+    Return: None
     '''
-    try:
-        content_list = open(filename, 'rU').readlines()
-        return content_list
-    except IOError:
-        _print_file_open_error(filename)
-        _print_exiting()
-        exit(1)
-
-
-def _add_to_match_file(data):
+    for item in l:
+        print '- {0}'.format(item)
+    print
+        
+def __handle_Exception(ex):
     '''
-    Append one line to otput file
+    Handles an exception
+    
+    Return: None
+    '''
+    print '[!] {0}'.format(ex)
+    __exit_program()
+        
+
+def __write_to_output_file(matches_list):
+    '''
+    Appends a list to output file.
 
     Return: None
     '''
-
     try:
-        f_matchfile = open(match_file, "a")
-    except IOError:
-        _print_file_open_error(match_file)
-        _print_exiting()
-        exit(1)
+        with open(output_file, 'w') as of:
+            for match in matches_list:
+                of.write('{0}\n'.format(match))
 
-    try:
-        f_matchfile.write("%s\n" % data)
-    except IOError:
-        _print_file_open_error(match_file)
-        _print_exiting()
-        exit(1)
-
-    f_matchfile.close()
+    except Exception as ex:
+        __handle_Exception(ex)
 
 
-def _print_file_open_error(filename):
+def __print_file_open_error(filename):
     '''
-    Show unable to open in console
+    Displays "unable to open file" error.
 
     Return: filename
     '''
-    print "[!] Unable to open  %s " % filename
+    print '[!] Unable to open {0}'.format(filename)
 
 
-def _print_file_write_error(filename):
+def __exit_program():
     '''
-    Show write error in console
+    Displays "exiting" message.
 
     Return: filename
     '''
-    print "[!] Unable to write to  %s " % filename
+    print '[*] Exiting'
+    exit(1)
 
 
-def _print_exiting():
+def __print_job_start():
     '''
-    Show exiting in console
-
-    Return: filename
-    '''
-    print "[*] Exiting"
-
-
-def _print_job_start():
-    '''
-    Show start message in console
+    Displays a start message.
 
     Return: start time timer
     '''
     job_timer = time.clock()
-    print "[*] Starting...\n"
+    print '[*] Starting...'
     return job_timer
 
 
-def _print_job_end(process_duration):
+def __print_job_end(process_duration):
     '''
-    Show end message in console
+    Displays a end message.
 
     Return: None
     '''
-    print "[*] Finish. Duration: %f seconds\n" % (time.clock()
-                                                  - process_duration)
+    print '[*] Finish. Duration: {:0.2f} seconds'.format(time.clock()
+                                                        - process_duration)
 
 
-def _print_job_status(contact_number, contact):
+def __print_job_status(current_account_number, account):
     '''
-    Show status job info in console
+    Displays a status job info message.
 
     Return: None
     '''
-    print "[*] Processing %d of %d: %s" % (contact_number + 1,
-                                           contacts_file_len,
-                                           contact.split(leak_file_split)
-                                           [0].lower())
+    print '[*] Processing {0}/{1}: {2}'.format(current_account_number,
+                                                  accounts_file_lines,
+                                                  account)
 
 
-def _print_match_found(matched):
+def __print_match_found(matched):
     '''
-    Show matched job  in console
+    Displays a  "matched job" message.
 
     Return: None
     '''
-    print "[!] Email match in leaked file: %s" % (matched)
+    print '[!] Email match in leaked file: {0}'.format(matched)
 
 
-def _print_job_time(job_timer):
+def __print_job_time(job_timer):
     '''
-    Show job duration time in console
+    DIsplays job duration timer.
 
     Return: None
     '''
-    print "[-] Search duration: %f seconds\n" % (time.clock()-job_timer)
+    print '[-] Search duration: {0.2f} seconds'.format(time.clock()-job_timer)
 
 
-def _print_python_version_error():
+def __print_python_version_error():
     '''
-    Show python version error
+    Displays a python version error.
 
     Return: None
     '''
     print '[!] You must use Python 2,7 or higher'
 
 
-def _validate_python_version():
+def __validate_python_version():
     '''
-    Check Python version
+    Checks Python version
 
     Return: True if running version is valid
     '''
@@ -247,18 +219,22 @@ def _validate_python_version():
         return False
     else:
         return True
-
-
-def _start_process():
+        
+        
+def __get_file_len(f):
     '''
-    Select work mode and start process
-
-    Return: None
+    Gets the number of non blank lines of a file.
+    
+    Return: number of non blank num_lines in a file.
     '''
-    if big_file_mode:
-        search_leak_file_big_file()
-    else:
-        search_leak_file()
+    num_lines = 0
+    
+    with open(f) as inf:
+        for line in inf:
+            if line.strip():
+                num_lines = num_lines + 1
+    
+    return num_lines
 
 
 if __name__ == "__main__":
@@ -267,21 +243,18 @@ if __name__ == "__main__":
 
     Return: None
     '''
-    if _validate_python_version():
+    if __validate_python_version():
         arguments = docopt(__doc__, version='1.0.0rc2')
-        big_file_mode = arguments['--lowmemorymode']
-        case_sensitive = arguments['--casesensitive']
-        leak_file = arguments['--leaklist']
-        contacts_file = arguments['--mylist']
+        leaks_file = arguments['--leaklist']
+        accounts_file = arguments['--mylist']
+        output_file = arguments['--output']
         leak_file_split = arguments['--separator']
-        match_file = arguments['--output']
-        contacts_file_len = sum(1 for line in open(contacts_file))
+        accounts_file_lines = __get_file_len(accounts_file)
 
-        _start_process()
-        process_timer = _print_job_start()
-        _print_job_end(process_timer)
+        process_timer = __print_job_start()
+        __search_leak_file()
+        __print_job_end(process_timer)
 
     else:
-        _print_python_version_error()
-        _print_exiting()
-        sys.exit(2)
+        __print_python_version_error()
+        __exit_program()
