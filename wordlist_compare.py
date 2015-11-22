@@ -30,52 +30,56 @@ License: CC-BY-SA 3.0 license (http://creativecommons.org/licenses/by/3.0/
 
 '''
 
-import time
-import sys  # needed for get python version and argv
-from docopt import docopt
 import mmap
 import os
+import sys  # needed for get python version and argv
+import time
+
+from docopt import docopt
 
 
-leaks_file = '' # Leaked list. Format: my@email[csv_separator]password
-accounts_file = ''# Your email list (one per line)
-output_file = '' # Output file with matched list
-leak_file_split = ':' # CSV separator used in leak_file
+leaks_file = ''  # Leaked list. Format: my@email[csv_separator]password
+accounts_file = ''  # Your email list (one per line)
+output_file = ''  # Output file with matched list
+leak_file_split = ':'  # CSV separator used in leak_file
 
 
-def __search_leak_file(): # TODO: Rename to __search_leaks
+def __search_leak_file():  # TODO: Rename to __search_leaks
     '''
     Compares lines between two files.
-    
+
     Return: None
     '''
     matches = []
-    
-    #Check if files are empty
+
+    # Check if files are empty
     accounts_file_empty = os.stat(accounts_file).st_size == 0
     leaks_file_empty = os.stat(leaks_file).st_size == 0
-    current_account_number = 0
-    
+    num_account = 0
+
     if (not accounts_file_empty and not leaks_file_empty):
         try:
-            with open(leaks_file, 'rU') as lf:
-                mlf = mmap.mmap(lf.fileno(), 0, prot=mmap.PROT_READ)
+            with open(leaks_file, 'rU') as leak_f:
+                mapped_leak_f = mmap.mmap(
+                    leak_f.fileno(), 0, prot=mmap.PROT_READ)
 
-                with open(accounts_file,'rU') as af:
+                with open(accounts_file, 'rU') as account_f:
                     # memory-map the file, size 0 means whole size
-                    #TODO: Windowing for files >4gb in python 32b?
-                    maf = mmap.mmap(af.fileno(), 0, access=mmap.ACCESS_READ)
-                    for account in iter(maf.readline, ''):
-                        current_account_number = current_account_number + 1
-                        __print_job_status(current_account_number, 
+                    # TODO: Windowing for files >4gb in python 32b?
+                    mapped_account_f = mmap.mmap(account_f.fileno(), 0,
+                                                 access=mmap.ACCESS_READ)
+                    for account in iter(mapped_account_f.readline, ''):
+                        num_account = num_account + 1
+                        __print_job_status(num_account,
                                            account.strip())
-                        current_account_fomatted = account.strip().lower()
-                        
-                        mlf.seek(0)
-                        
-                        for leaked_account in iter(mlf.readline, ''):
-                            current_leaked_account_formatted = leaked_account.split(leak_file_split)[0].strip().lower()
-                            if(current_account_fomatted == current_leaked_account_formatted):
+                        account_formatted = account.strip().lower()
+
+                        mapped_leak_f.seek(0)
+
+                        for leaked_account in iter(mapped_leak_f.readline, ''):
+                            current_leaked_account_formatted = leaked_account.split(
+                                leak_file_split)[0].strip().lower()
+                            if(account_formatted == current_leaked_account_formatted):
                                 matches.append(account.strip())
                                 break
 
@@ -85,8 +89,8 @@ def __search_leak_file(): # TODO: Rename to __search_leaks
                 if(output_file):
                     __write_to_output_file(matches)
             else:
-                print '[*] No matches found.' 
-                
+                print '[*] No matches found.'
+
         except Exception as ex:
             __handle_Exception(ex)
     else:
@@ -95,25 +99,27 @@ def __search_leak_file(): # TODO: Rename to __search_leaks
         if leaks_file_empty:
             print '[!] {0} is empty'.format(leaks_file)
 
+
 def __print_list(l):
     '''
     Prints a list in a nice format.
-    
+
     Return: None
     '''
     for item in l:
         print '- {0}'.format(item)
     print
-        
+
+
 def __handle_Exception(ex):
     '''
     Handles an exception
-    
+
     Return: None
     '''
     print '[!] {0}'.format(ex)
     __exit_program()
-        
+
 
 def __write_to_output_file(matches_list):
     '''
@@ -167,7 +173,7 @@ def __print_job_end(process_duration):
     Return: None
     '''
     print '[*] Finish. Duration: {:0.2f} seconds'.format(time.clock()
-                                                        - process_duration)
+                                                         - process_duration)
 
 
 def __print_job_status(current_account_number, account):
@@ -177,8 +183,8 @@ def __print_job_status(current_account_number, account):
     Return: None
     '''
     print '[*] Processing {0}/{1}: {2}'.format(current_account_number,
-                                                  accounts_file_lines,
-                                                  account)
+                                               accounts_file_lines,
+                                               account)
 
 
 def __print_match_found(matched):
@@ -196,7 +202,7 @@ def __print_job_time(job_timer):
 
     Return: None
     '''
-    print '[-] Search duration: {0.2f} seconds'.format(time.clock()-job_timer)
+    print '[-] Search duration: {0.2f} seconds'.format(time.clock() - job_timer)
 
 
 def __print_python_version_error():
@@ -219,21 +225,21 @@ def __validate_python_version():
         return False
     else:
         return True
-        
-        
+
+
 def __get_file_len(f):
     '''
     Gets the number of non blank lines of a file.
-    
+
     Return: number of non blank num_lines in a file.
     '''
     num_lines = 0
-    
+
     with open(f) as inf:
         for line in inf:
             if line.strip():
                 num_lines = num_lines + 1
-    
+
     return num_lines
 
 
