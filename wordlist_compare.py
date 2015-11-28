@@ -41,7 +41,7 @@ from docopt import docopt
 leaks_file = ''  # Leaked list. Format: my@email[csv_separator]password
 accounts_file = ''  # Your email list (one per line)
 output_file = ''  # Output file with matched list
-leak_file_split = ':'  # CSV separator used in leak_file
+leak_file_separator = ':'  # CSV separator used in leak_file
 
 
 def __search_leak_file():  # TODO: Rename to __search_leaks
@@ -55,22 +55,21 @@ def __search_leak_file():  # TODO: Rename to __search_leaks
     # Check if files are empty
     accounts_file_empty = os.stat(accounts_file).st_size == 0
     leaks_file_empty = os.stat(leaks_file).st_size == 0
-    num_account = 0
+    num_accounts = 0
 
-    if (not accounts_file_empty and not leaks_file_empty):
+    if not accounts_file_empty and not leaks_file_empty:
         try:
             with open(leaks_file, 'rU') as leak_f:
                 mapped_leak_f = mmap.mmap(
                     leak_f.fileno(), 0, prot=mmap.PROT_READ)
 
                 with open(accounts_file, 'rU') as account_f:
-                    # memory-map the file, size 0 means whole size
                     # TODO: Windowing for files >4gb in python 32b?
                     mapped_account_f = mmap.mmap(account_f.fileno(), 0,
                                                  access=mmap.ACCESS_READ)
                     for account in iter(mapped_account_f.readline, ''):
-                        num_account = num_account + 1
-                        __print_job_status(num_account,
+                        num_accounts = num_accounts + 1
+                        __print_job_status(num_accounts,
                                            account.strip())
                         account_formatted = account.strip().lower()
 
@@ -78,12 +77,12 @@ def __search_leak_file():  # TODO: Rename to __search_leaks
 
                         for leaked_account in iter(mapped_leak_f.readline, ''):
                             current_leaked_account_formatted = leaked_account.split(
-                                leak_file_split)[0].strip().lower()
+                                leak_file_separator)[0].strip().lower()
                             if(account_formatted == current_leaked_account_formatted):
                                 matches.append(account.strip())
                                 break
 
-            if(matches):
+            if matches:
                 print '\n[!] Matches:'
                 __print_list(matches)
                 if(output_file):
@@ -111,7 +110,7 @@ def __print_list(l):
     print
 
 
-def __handle_Exception(ex):
+def __handle_exception(ex):
     '''
     Handles an exception
 
@@ -128,12 +127,12 @@ def __write_to_output_file(matches_list):
     Return: None
     '''
     try:
-        with open(output_file, 'w') as of:
+        with open(output_file, 'w') as f:
             for match in matches_list:
-                of.write('{0}\n'.format(match))
+                f.write('{0}\n'.format(match))
 
     except Exception as ex:
-        __handle_Exception(ex)
+        __handle_exception(ex)
 
 
 def __print_file_open_error(filename):
@@ -183,7 +182,7 @@ def __print_job_status(current_account_number, account):
     Return: None
     '''
     print '[*] Processing {0}/{1}: {2}'.format(current_account_number,
-                                               accounts_file_lines,
+                                               num_accounts,
                                                account)
 
 
@@ -254,8 +253,8 @@ if __name__ == "__main__":
         leaks_file = arguments['--leaklist']
         accounts_file = arguments['--mylist']
         output_file = arguments['--output']
-        leak_file_split = arguments['--separator']
-        accounts_file_lines = __get_file_len(accounts_file)
+        leak_file_separator = arguments['--separator']
+        num_accounts = __get_file_len(accounts_file)
 
         process_timer = __print_job_start()
         __search_leak_file()
