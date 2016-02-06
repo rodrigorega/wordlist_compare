@@ -40,11 +40,11 @@ from docopt import docopt
 leaks_file = ''  # Leaked list. Format: my@email[csv_separator]password
 accounts_file = ''  # Your email list (one per line)
 output_file = ''  # Output file with matched list
-leak_file_separator = ':'  # CSV separator used in leak_file
+separator = ':'  # CSV separator used in leak_file
 
 
 # noinspection PyShadowingNames,PyShadowingNames
-def __search_leak_file():  # TODO: Rename to __search_leaks
+def __search_leaks():
     """
     Compares lines between two files.
 
@@ -76,8 +76,7 @@ def __search_leak_file():  # TODO: Rename to __search_leaks
                         mapped_leak_f.seek(0)
 
                         for leaked_account in iter(mapped_leak_f.readline, ''):
-                            current_leaked_account_formatted = leaked_account.split(
-                                leak_file_separator)[0].strip().lower()
+                            current_leaked_account_formatted = leaked_account.split(separator)[0].strip().lower()
                             if account_formatted == current_leaked_account_formatted:
                                 matches.append(account.strip())
                                 break
@@ -180,9 +179,7 @@ def __print_job_status(current_account_number, account):
 
     Return: None
     """
-    print '[*] Processing {0}/{1}: {2}'.format(current_account_number,
-                                               num_accounts,
-                                               account)
+    print '[*] Processing {0}/{1}: {2}'.format(current_account_number, num_accounts, account)
 
 
 def __print_match_found(matched):
@@ -252,11 +249,11 @@ if __name__ == "__main__":
         leaks_file = arguments['--leaklist']
         accounts_file = arguments['--mylist']
         output_file = arguments['--output']
-        leak_file_separator = arguments['--separator']
+        separator = arguments['--separator']
         num_accounts = __get_file_len(accounts_file)
 
         process_timer = __print_job_start()
-        __search_leak_file()
+        __search_leaks()
         __print_job_end(process_timer)
 
     else:
