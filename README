@@ -10,7 +10,7 @@ Dependencies:
 
 Usage:
     - python wordlist_compare.py -l LEAK_LIST -m MY_LIST [-o OUTPUT_LIST]
-                             [-s CSV_SEPARATOR] [--lowmemorymode] [--separator]
+                             [-s CSV_SEPARATOR]
     - python wordlist_compare.py --help
 
 Output:
