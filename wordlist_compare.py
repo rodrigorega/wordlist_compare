@@ -43,7 +43,7 @@ output_file = ''  # Output file with matched list
 separator = ':'  # CSV separator used in leak_file
 
 
-# noinspection PyShadowingNames,PyShadowingNames
+# noinspection PyShadowingNames
 def __search_leaks():
     """
     Compares lines between two files.
