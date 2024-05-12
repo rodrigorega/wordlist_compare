@@ -163,3 +163,4 @@ cython_debug/
 
 # wordlist_compare.py
 files/
+output.txt
