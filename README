@@ -1,21 +1,26 @@
-﻿In 2014-09-10 a file named "google_5000000.7z" was leaked with 5000000 gmail
+﻿# wordlist_compare
+
+## Why?
+
+In 2014-09-10 a file named "google_5000000.7z" was leaked with 5000000 gmail
 emails and passwords. I wrote this script to check if my email accounts were
 in that leaked file.
 
-Dependencies:
-    - python 2.7
-    - docopt (Install it with: pip install docopt)
-    - LEAK_LIST: File with leaked emails
-    - MY_LIST: File with your emails
+## Usage
 
+```
 Usage:
-    - python wordlist_compare.py -l LEAK_LIST -m MY_LIST [-o OUTPUT_LIST]
-                             [-s CSV_SEPARATOR]
+    - python wordlist_compare.py -l LEAK_LIST -m MY_LIST [-o OUTPUT_LIST] [-s CSV_SEPARATOR]
     - python wordlist_compare.py --help
 
-Output:
-    - OUTPUT_LIST file with matched emails.
+```
 
-Script Website: https://github.com/rodrigorega/wordlist_compare
+## Author
+
+Script Website: [https://github.com/rodrigorega/wordlist_compare](https://github.com/rodrigorega/wordlist_compare)
 Author: Rodrigo Rega <contacto@rodrigorega.es>
-License: CC-BY-SA 3.0 license (http://creativecommons.org/licenses/by/3.0/   
+License: [CC-BY-SA 3.0](http://creativecommons.org/licenses/by/3.0)
+
+## Contributors
+
+* [Rubén Hortas](https://github.com/rubenhortas)
