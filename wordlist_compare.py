@@ -7,7 +7,6 @@ import os
 from types import FrameType
 from sys import version_info
 
-
 REQUIRED_INTERPRETER_VERSION = 3
 
 
@@ -29,62 +28,47 @@ def _is_empty(file: str) -> bool:
     return os.stat(file).st_size == 0
 
 
-def _get_leaks(file: str) -> list:
-    leaks = []
+def _read_file(file: str, csv_separator: str | None) -> list:
+    normalized_lines = []
 
-    with open(args.leak_file, 'r') as f:
+    with open(file, 'r') as f:
         for line in f.readlines():
             normalized_line = _normalize(line)
 
-            if args.csv_separator:
+            if csv_separator:
                 normalized_line = normalized_line.split(args.csv_separator)[0]
 
-            leaks.append(normalized_line)
+            normalized_lines.append(normalized_line)
 
-    return leaks
-
-
-def _get_mails(file: str) -> list:
-    mails = []
-
-    with open(args.mails_file, 'r') as f:
-        for line in f.readlines():
-            normalized_line = _normalize(line)
-            mails.append(normalized_line)
-
-    return mails
+    return normalized_lines
 
 
-def _get_matches(mails: list, leaks: list) -> list:
-    matches = []
+def _get_leaked_mails(mails: list, leaks: list) -> list:
+    leaked_mails = []
 
     for mail in mails:
         if mail in leaks:
-            matches.append(mail)
+            leaked_mails.append(mail)
 
-    return matches
-
-
-def _print_matches(matches: list) -> None:
-    print('wordlist_compare.py')
-
-    if matches:
-        print('Matches:')
-
-        for match_ in matches:
-            print(f"- {match_}")
-
-    else:
-        print('No matches found')
+    return leaked_mails
 
 
-def _write_output_file(ouput_file: str, matches: list) -> None:
-    with open(ouput_file, 'w') as f:
+def _print_leaked_mails(matches: list) -> None:
+    print('Matches:')
+
+    for match_ in matches:
+        print(f"- {match_}")
+
+
+def _write_output_file(output_file: str, matches: list) -> None:
+    with open(output_file, 'w') as f:
         f.write('\n'.join(matches))
 
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, _handle_sigint)
+
+    print('wordlist_compare.py')
 
     if _get_interpreter_version() == REQUIRED_INTERPRETER_VERSION:
         parser = argparse.ArgumentParser(prog='wordlist_compare.py', description='Checks if mails are in a leak file.')
@@ -99,14 +83,17 @@ if __name__ == '__main__':
             mails_file_is_empty = _is_empty(args.mails_file)
 
             if not leak_file_is_empty and not mails_file_is_empty:
-                leaks = _get_leaks(args.leak_file)
-                mails = _get_mails(args.mails_file)
-                matches = _get_matches(mails, leaks)
+                leaks = _read_file(args.leak_file, args.csv_separator)
+                mails = _read_file(args.mails_file, None)
+                leaked_mails = _get_leaked_mails(mails, leaks)
 
-                _print_matches(matches)
+                if leaked_mails:
+                    _print_leaked_mails(leaked_mails)
 
-                if matches and args.output_file:
-                    _write_output_file(args.output_file, matches)
+                    if args.output_file:
+                        _write_output_file(args.output_file, leaked_mails)
+                else:
+                    print('No matches found')
             else:
                 if leak_file_is_empty:
                     print(f"{args.leak_file} is empty")
