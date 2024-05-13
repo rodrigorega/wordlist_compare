@@ -2,7 +2,6 @@
 
 import argparse
 import signal
-import os
 
 from types import FrameType
 from sys import version_info
@@ -24,10 +23,6 @@ def _normalize(string: str) -> str:
     return string.strip().lower()
 
 
-def _is_empty(file: str) -> bool:
-    return os.stat(file).st_size == 0
-
-
 def _read_file(file: str, csv_separator: str | None) -> list:
     normalized_lines = []
 
@@ -47,7 +42,7 @@ def _get_leaked_mails(mails: list, leaks: list) -> list:
     leaked_mails = []
 
     for mail in mails:
-        if mail in leaks:
+        if mail in leaks and mail not in leaked_mails:
             leaked_mails.append(mail)
 
     return leaked_mails
@@ -79,27 +74,17 @@ if __name__ == '__main__':
         args = parser.parse_args()
 
         try:
-            leak_file_is_empty = _is_empty(args.leak_file)
-            mails_file_is_empty = _is_empty(args.mails_file)
+            leaks = _read_file(args.leak_file, args.csv_separator)
+            mails = _read_file(args.mails_file, None)
+            leaked_mails = _get_leaked_mails(mails, leaks)
 
-            if not leak_file_is_empty and not mails_file_is_empty:
-                leaks = _read_file(args.leak_file, args.csv_separator)
-                mails = _read_file(args.mails_file, None)
-                leaked_mails = _get_leaked_mails(mails, leaks)
+            if leaked_mails:
+                _print_leaked_mails(leaked_mails)
 
-                if leaked_mails:
-                    _print_leaked_mails(leaked_mails)
-
-                    if args.output_file:
-                        _write_output_file(args.output_file, leaked_mails)
-                else:
-                    print('No matches found')
+                if args.output_file:
+                    _write_output_file(args.output_file, leaked_mails)
             else:
-                if leak_file_is_empty:
-                    print(f"{args.leak_file} is empty")
-
-                if mails_file_is_empty:
-                    print(f"{args.mails_file} is empty")
+                print('No matches found')
         except Exception as e:
             print(e)
     else:
