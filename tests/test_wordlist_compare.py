@@ -5,7 +5,7 @@ from wordlist_compare import _normalize, _get_leaked_mails
 
 class TestWordlistCompare(unittest.TestCase):
     def test_normalize(self):
-        self.assertEqual('foobar@email.com', _normalize('fOo.bAr@email.com'))
+        self.assertEqual('foobar@email.com', _normalize('fOo.bAr@email.com\n'))
 
     def test_get_leaked_mails(self):
         leaks = [
@@ -23,6 +23,6 @@ class TestWordlistCompare(unittest.TestCase):
 
         leaked_mails = _get_leaked_mails([], [])
         self.assertEqual([], leaked_mails)
-        
+
         leaked_mails = _get_leaked_mails(mails, leaks)
         self.assertEqual(['alice@email.net', 'bob@email.org'], leaked_mails)
