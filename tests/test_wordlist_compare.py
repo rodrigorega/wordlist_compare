@@ -21,5 +21,8 @@ class TestWordlistCompare(unittest.TestCase):
             'b.O.b@email.org'
         ]
 
+        leaked_mails = _get_leaked_mails([], [])
+        self.assertEqual([], leaked_mails)
+        
         leaked_mails = _get_leaked_mails(mails, leaks)
         self.assertEqual(['alice@email.net', 'bob@email.org'], leaked_mails)
