@@ -19,30 +19,34 @@ def _get_interpreter_version():
     return major
 
 
-def _normalize(string: str) -> str:
-    return string.strip().lower().replace('.', '')
-
-
 def _read_file(file: str, csv_separator: str | None) -> list:
-    normalized_lines = []
-
     with open(file, 'r') as f:
-        for line in f.readlines():
-            normalized_line = _normalize(line)
+        if csv_separator:
+            lines = []
 
-            if csv_separator:
-                normalized_line = normalized_line.split(args.csv_separator)[0]
+            for line in f.readlines():
+                lines.append(line.split(csv_separator)[0])
 
-            normalized_lines.append(normalized_line)
+            return lines
+        else:
+            return f.readlines()
 
-    return normalized_lines
+
+def _normalize(string: str) -> str:
+    mail = string.strip().lower()
+    user, domain = mail.split('@')
+    normalized_user = user.replace('.', '')
+
+    return f"{normalized_user}@{domain}"
 
 
 def _get_leaked_mails(mails: list, leaks: list) -> list:
     leaked_mails = []
+    normalized_mails = list(map(_normalize, mails))
+    normalized_leaks = list(map(_normalize, leaks))
 
-    for mail in mails:
-        if mail in leaks and mail not in leaked_mails:
+    for mail in normalized_mails:
+        if mail in normalized_leaks and mail not in leaked_mails:
             leaked_mails.append(mail)
 
     return leaked_mails
