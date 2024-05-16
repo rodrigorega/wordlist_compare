@@ -20,7 +20,7 @@ def _get_interpreter_version():
 
 
 def _normalize(string: str) -> str:
-    return string.strip().lower().replace('.','')
+    return string.strip().lower().replace('.', '')
 
 
 def _read_file(file: str, csv_separator: str | None) -> list:
@@ -70,7 +70,8 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(prog='wordlist_compare.py', description='Checks if mails are in a leak file.')
         parser.add_argument('-l', '--leak', help='leak file', dest='leak_file', required=True)
         parser.add_argument('-m', '--mails', help='mails file', dest='mails_file', required=True)
-        parser.add_argument('-s', '--separator', help='csv separator used in the leak file', dest='csv_separator', required=False)
+        parser.add_argument('-s', '--separator', help='csv separator used in the leak file', dest='csv_separator',
+                            required=False)
         parser.add_argument('-o', '--output', help='emails found in the leak file', dest='output_file', required=False)
         args = parser.parse_args()
 
