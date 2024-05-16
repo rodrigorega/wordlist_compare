@@ -64,7 +64,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, _handle_sigint)
 
     print('wordlist_compare.py')
-    print('* Note: \'foo.bar@mail.com\' will be treated as \'foobar@mail\'.')
+    print('* \'foo.bar@mail.com\' will be treated as \'foobar@mail\'.\n')
 
     if _get_interpreter_version() == REQUIRED_INTERPRETER_VERSION:
         parser = argparse.ArgumentParser(prog='wordlist_compare.py', description='Checks if mails are in a leak file.')
@@ -74,22 +74,25 @@ if __name__ == '__main__':
         parser.add_argument('-o', '--output', help='emails found in the leak file', dest='output_file', required=False)
         args = parser.parse_args()
 
-        try:
-            leaks = _read_file(args.leak_file, args.csv_separator)
-            mails = _read_file(args.mails_file, None)
-            leaked_mails = _get_leaked_mails(mails, leaks)
+        if args.leak_file != args.mails_file:
+            try:
+                leaks = _read_file(args.leak_file, args.csv_separator)
+                mails = _read_file(args.mails_file, None)
+                leaked_mails = _get_leaked_mails(mails, leaks)
 
-            if leaked_mails:
-                _print_leaked_mails(leaked_mails)
+                if leaked_mails:
+                    _print_leaked_mails(leaked_mails)
 
-                if args.output_file:
-                    _write_output_file(args.output_file, leaked_mails)
-            else:
-                print('No matches found')
-        except FileNotFoundError as fee:
-            print(f"'{fee.filename}' no such file or directory")
-        except Exception as e:
-            print(e)
+                    if args.output_file:
+                        _write_output_file(args.output_file, leaked_mails)
+                else:
+                    print('No matches found')
+            except FileNotFoundError as fee:
+                print(f"'{fee.filename}' no such file or directory")
+            except Exception as e:
+                print(e)
+        else:
+            print(f"Leaks file and mails file are the same: '{args.leak_file}'")
     else:
         print(f"Requires python{REQUIRED_INTERPRETER_VERSION}")
         exit(0)
