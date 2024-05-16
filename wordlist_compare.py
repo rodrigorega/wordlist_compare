@@ -86,6 +86,8 @@ if __name__ == '__main__':
                     _write_output_file(args.output_file, leaked_mails)
             else:
                 print('No matches found')
+        except FileNotFoundError as fee:
+            print(f"'{fee.filename}' no such file or directory")
         except Exception as e:
             print(e)
     else:
