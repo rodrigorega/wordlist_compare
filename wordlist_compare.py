@@ -20,7 +20,7 @@ def _get_interpreter_version():
 
 
 def _normalize(string: str) -> str:
-    return string.strip().lower()
+    return string.strip().lower().replace('.','')
 
 
 def _read_file(file: str, csv_separator: str | None) -> list:
