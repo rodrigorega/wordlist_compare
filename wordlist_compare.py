@@ -2,9 +2,9 @@
 
 import argparse
 import signal
-
-from types import FrameType
+from operator import methodcaller
 from sys import version_info
+from types import FrameType
 
 REQUIRED_INTERPRETER_VERSION = 3
 
@@ -22,28 +22,26 @@ def _get_interpreter_version():
 def _read_file(file: str, csv_separator: str | None) -> list:
     with open(file, 'r') as f:
         if csv_separator:
-            lines = []
-
-            for line in f.readlines():
-                lines.append(line.split(csv_separator)[0])
-
-            return lines
+            return [item[0] for item in map(methodcaller("split", csv_separator), f.readlines())]
         else:
             return f.readlines()
 
 
 def _normalize(string: str) -> str:
-    mail = string.strip().lower()
-    user, domain = mail.split('@')
-    normalized_user = user.replace('.', '')
+    try:
+        mail = string.strip().lower()
+        user, domain = mail.split('@')
+        normalized_user = user.replace('.', '')
 
-    return f"{normalized_user}@{domain}"
+        return f"{normalized_user}@{domain}"
+    except ValueError:
+        print(f"Malformed mail: {string.rstrip()}")
 
 
 def _get_leaked_mails(mails: list, leaks: list) -> list:
     leaked_mails = []
-    normalized_mails = list(map(_normalize, mails))
-    normalized_leaks = list(map(_normalize, leaks))
+    normalized_mails = map(_normalize, mails)
+    normalized_leaks = map(_normalize, leaks)
 
     for mail in normalized_mails:
         if mail in normalized_leaks and mail not in leaked_mails:
@@ -80,8 +78,8 @@ if __name__ == '__main__':
 
         if args.leak_file != args.mails_file:
             try:
-                leaks = _read_file(args.leak_file, args.csv_separator)
                 mails = _read_file(args.mails_file, None)
+                leaks = _read_file(args.leak_file, args.csv_separator)
                 leaked_mails = _get_leaked_mails(mails, leaks)
 
                 if leaked_mails:
