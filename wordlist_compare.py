@@ -64,6 +64,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, _handle_sigint)
 
     print('wordlist_compare.py')
+    print('* Note: \'foo.bar@mail.com\' will be treated as \'foobar@mail\'.')
 
     if _get_interpreter_version() == REQUIRED_INTERPRETER_VERSION:
         parser = argparse.ArgumentParser(prog='wordlist_compare.py', description='Checks if mails are in a leak file.')
