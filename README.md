@@ -26,6 +26,7 @@ options:
 
 ## Requirements
 
+* python3
 * tqdm
 
 ## About wordlist_compare
