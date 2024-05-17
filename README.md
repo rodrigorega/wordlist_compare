@@ -8,17 +8,30 @@ I wrote this script to check if my email accounts were in that leaked file.
 ## Usage
 
 ```
-Usage:
-    - python wordlist_compare.py -l LEAK_LIST -m MY_LIST [-o OUTPUT_LIST] [-s CSV_SEPARATOR]
-    - python wordlist_compare.py --help
+usage: wordlist_compare.py [-h] -l LEAK_FILE -m MAILS_FILE [-s CSV_SEPARATOR] [-o OUTPUT_FILE]
 
+Checks if mails are in a leak file.
+
+options:
+  -h, --help            show this help message and exit
+  -l LEAK_FILE, --leak LEAK_FILE
+                        leak file
+  -m MAILS_FILE, --mails MAILS_FILE
+                        mails file
+  -s CSV_SEPARATOR, --separator CSV_SEPARATOR
+                        csv separator used in the leak file
+  -o OUTPUT_FILE, --output OUTPUT_FILE
+                        emails found in the leak file
 ```
+
+## About wordlist_compare
+
+Script Website: [https://github.com/rodrigorega/wordlist_compare](https://github.com/rodrigorega/wordlist_compare)  
+License: [CC-BY-SA 3.0](http://creativecommons.org/licenses/by/3.0)  
 
 ## Author
 
-Script Website: [https://github.com/rodrigorega/wordlist_compare](https://github.com/rodrigorega/wordlist_compare)  
 Author: Rodrigo Rega <contacto@rodrigorega.es>  
-License: [CC-BY-SA 3.0](http://creativecommons.org/licenses/by/3.0)  
 
 ## Contributors
 
