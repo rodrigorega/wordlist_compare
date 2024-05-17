@@ -24,6 +24,10 @@ options:
                         emails found in the leak file
 ```
 
+## Requirements
+
+* tqdm
+
 ## About wordlist_compare
 
 Script Website: [https://github.com/rodrigorega/wordlist_compare](https://github.com/rodrigorega/wordlist_compare)  
