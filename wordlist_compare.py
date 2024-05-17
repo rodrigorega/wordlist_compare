@@ -4,6 +4,7 @@ import argparse
 import signal
 from operator import methodcaller
 from sys import version_info
+from tqdm import tqdm
 from types import FrameType
 
 REQUIRED_INTERPRETER_VERSION = 3
@@ -43,7 +44,7 @@ def _get_leaked_mails(mails: list, leaks: list) -> list:
     normalized_mails = map(_normalize, mails)
     normalized_leaks = map(_normalize, leaks)
 
-    for mail in normalized_mails:
+    for mail in tqdm(normalized_mails):
         if mail in normalized_leaks and mail not in leaked_mails:
             leaked_mails.append(mail)
 
@@ -78,6 +79,8 @@ if __name__ == '__main__':
 
         if args.leak_file != args.mails_file:
             try:
+                print()
+
                 mails = _read_file(args.mails_file, None)
                 leaks = _read_file(args.leak_file, args.csv_separator)
                 leaked_mails = _get_leaked_mails(mails, leaks)
