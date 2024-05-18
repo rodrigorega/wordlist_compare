@@ -51,11 +51,11 @@ def _get_leaked_mails(mails: list, leaks: list) -> list:
     return leaked_mails
 
 
-def _print_leaked_mails(matches: list) -> None:
+def _print_leaked_mails(mails: list) -> None:
     print('Matches:')
 
-    for match_ in matches:
-        print(f"- {match_}")
+    for mail in mails:
+        print(f"- {mail}")
 
 
 def _write_output_file(output_file: str, matches: list) -> None:
