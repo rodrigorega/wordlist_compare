@@ -1,266 +1,122 @@
-#!/usr/bin/env python
-# _*_ coding:utf-8 _*_
+#!/usr/bin/env python3
 
-'''
+import argparse
+import signal
+from operator import methodcaller
+from sys import exit, version_info
+from tqdm import tqdm
+from types import FrameType
 
-wordlist_compare.py
-
-Usage:
-  wordlist_compare.py -l LEAK_LIST -m MY_LIST [-o OUTPUT_LIST] 
-                    [-s CSV_SEPARATOR]
-  wordlist_compare.py --help
-
-Options:
-  -l LEAK_LIST, --leaklist=LEAK_LIST  CSV with leaked data. This file must be
-                                      in format: my@email:password
-
-  -m MY_LIST, --mylist=MY_LIST        File with your emails (one per line)
-
-  -o OUTPUT_LIST, --output=OUTPUT_LIST  File were matched emails in LEAK_LIST
-                                        and MY_EMAIL_LIST will be saved
-                                        [default: my_leaked_emails.txt]
-  -s CSV_SEPARATOR, --separator=CSV_SEPARATOR CSV separator used in LEAK_LIST
-                                        [default: :]
-
-  -h, --help           Show this help screen.
-
-Script Website: https://github.com/rodrigorega/wordlist_compare
-Author: Rodrigo Rega <contacto@rodrigorega.es>
-License: CC-BY-SA 3.0 license (http://creativecommons.org/licenses/by/3.0/
-
-'''
-
-import mmap
-import os
-import sys  # needed for get python version and argv
-import time
-
-from docopt import docopt
+REQUIRED_INTERPRETER_VERSION = 3
 
 
-leaks_file = ''  # Leaked list. Format: my@email[csv_separator]password
-accounts_file = ''  # Your email list (one per line)
-output_file = ''  # Output file with matched list
-leak_file_split = ':'  # CSV separator used in leak_file
+def _handle_sigint(signal: int, frame: FrameType) -> None:
+    print('\rStopped')
+    exit(0)
 
 
-def __search_leak_file():  # TODO: Rename to __search_leaks
-    '''
-    Compares lines between two files.
-
-    Return: None
-    '''
-    matches = []
-
-    # Check if files are empty
-    accounts_file_empty = os.stat(accounts_file).st_size == 0
-    leaks_file_empty = os.stat(leaks_file).st_size == 0
-    num_account = 0
-
-    if (not accounts_file_empty and not leaks_file_empty):
-        try:
-            with open(leaks_file, 'rU') as leak_f:
-                mapped_leak_f = mmap.mmap(
-                    leak_f.fileno(), 0, prot=mmap.PROT_READ)
-
-                with open(accounts_file, 'rU') as account_f:
-                    # memory-map the file, size 0 means whole size
-                    # TODO: Windowing for files >4gb in python 32b?
-                    mapped_account_f = mmap.mmap(account_f.fileno(), 0,
-                                                 access=mmap.ACCESS_READ)
-                    for account in iter(mapped_account_f.readline, ''):
-                        num_account = num_account + 1
-                        __print_job_status(num_account,
-                                           account.strip())
-                        account_formatted = account.strip().lower()
-
-                        mapped_leak_f.seek(0)
-
-                        for leaked_account in iter(mapped_leak_f.readline, ''):
-                            current_leaked_account_formatted = leaked_account.split(
-                                leak_file_split)[0].strip().lower()
-                            if(account_formatted == current_leaked_account_formatted):
-                                matches.append(account.strip())
-                                break
-
-            if(matches):
-                print '\n[!] Matches:'
-                __print_list(matches)
-                if(output_file):
-                    __write_to_output_file(matches)
-            else:
-                print '[*] No matches found.'
-
-        except Exception as ex:
-            __handle_Exception(ex)
-    else:
-        if accounts_file_empty:
-            print '[!] {0} is empty'.format(accounts_file)
-        if leaks_file_empty:
-            print '[!] {0} is empty'.format(leaks_file)
+def _get_interpreter_version():
+    major, _, _, _, _ = version_info
+    return major
 
 
-def __print_list(l):
-    '''
-    Prints a list in a nice format.
-
-    Return: None
-    '''
-    for item in l:
-        print '- {0}'.format(item)
-    print
-
-
-def __handle_Exception(ex):
-    '''
-    Handles an exception
-
-    Return: None
-    '''
-    print '[!] {0}'.format(ex)
-    __exit_program()
-
-
-def __write_to_output_file(matches_list):
-    '''
-    Appends a list to output file.
-
-    Return: None
-    '''
+def _read_file(file: str, csv_separator: str | None) -> list:
     try:
-        with open(output_file, 'w') as of:
-            for match in matches_list:
-                of.write('{0}\n'.format(match))
-
-    except Exception as ex:
-        __handle_Exception(ex)
-
-
-def __print_file_open_error(filename):
-    '''
-    Displays "unable to open file" error.
-
-    Return: filename
-    '''
-    print '[!] Unable to open {0}'.format(filename)
+        with open(file, 'r') as f:
+            if csv_separator:
+                return [item[0] for item in map(methodcaller("split", csv_separator), f.readlines())]
+            else:
+                return f.readlines()
+    except (FileNotFoundError, OSError) as e:
+        print(f"'{e.filename}' no such file or directory")
+        exit(-1)
 
 
-def __exit_program():
-    '''
-    Displays "exiting" message.
+def _normalize(mails: list) -> list:
+    def _normalize(string: str) -> str:
+        try:
+            mail = string.strip().lower()
+            user, domain = mail.split('@')
+            normalized_user = user.replace('.', '')
 
-    Return: filename
-    '''
-    print '[*] Exiting'
-    exit(1)
+            return f"{normalized_user}@{domain}"
+        except ValueError:
+            print(f"Malformed mail: {string.rstrip()}")
 
+    normalized_mails = set()
 
-def __print_job_start():
-    '''
-    Displays a start message.
+    for mail in mails:
+        normalized_mail = _normalize(mail)
 
-    Return: start time timer
-    '''
-    job_timer = time.clock()
-    print '[*] Starting...'
-    return job_timer
+        if normalized_mail:
+            normalized_mails.add(normalized_mail)
 
-
-def __print_job_end(process_duration):
-    '''
-    Displays a end message.
-
-    Return: None
-    '''
-    print '[*] Finish. Duration: {:0.2f} seconds'.format(time.clock()
-                                                         - process_duration)
+    return list(normalized_mails)
 
 
-def __print_job_status(current_account_number, account):
-    '''
-    Displays a status job info message.
+def _get_leaked_mails(mails: list, leaks: list) -> list:
+    leaked_mails = []
+    normalized_mails = _normalize(mails)
+    normalized_leaks = _normalize(leaks)
 
-    Return: None
-    '''
-    print '[*] Processing {0}/{1}: {2}'.format(current_account_number,
-                                               accounts_file_lines,
-                                               account)
+    for mail in tqdm(normalized_mails):
+        if mail in normalized_leaks:
+            leaked_mails.append(mail)
 
-
-def __print_match_found(matched):
-    '''
-    Displays a  "matched job" message.
-
-    Return: None
-    '''
-    print '[!] Email match in leaked file: {0}'.format(matched)
+    return leaked_mails
 
 
-def __print_job_time(job_timer):
-    '''
-    DIsplays job duration timer.
+def _print_leaked_mails(mails: list) -> None:
+    print('Matches:')
 
-    Return: None
-    '''
-    print '[-] Search duration: {0.2f} seconds'.format(time.clock() - job_timer)
+    for mail in mails:
+        print(f"- {mail}")
 
 
-def __print_python_version_error():
-    '''
-    Displays a python version error.
+def _write_output_file(output_file: str, matches: list) -> None:
+    try:
+        with open(output_file, 'w') as f:
+            try:
+                f.write('\n'.join(matches))
+            except (IOError, OSError):
+                print(f"Error writing {output_file}")
+                exit(-1)
+    except (FileNotFoundError, PermissionError, OSError):
+        print(f"Error opening {output_file}")
+        exit(-1)
 
-    Return: None
-    '''
-    print '[!] You must use Python 2,7 or higher'
 
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, _handle_sigint)
 
-def __validate_python_version():
-    '''
-    Checks Python version
+    print('wordlist_compare.py')
+    print('* \'foo.bar@mail.com\' will be treated as \'foobar@mail\'.\n')
 
-    Return: True if running version is valid
-    '''
-    major, minor, micro, releaselevel, serial = sys.version_info
-    if (major, minor) < (2, 7):
-        return False
+    if _get_interpreter_version() == REQUIRED_INTERPRETER_VERSION:
+        parser = argparse.ArgumentParser(prog='wordlist_compare.py', description='Checks if mails are in a leak file.')
+        parser.add_argument('-l', '--leak', help='leak file', dest='leak_file', required=True)
+        parser.add_argument('-m', '--mails', help='mails file', dest='mails_file', required=True)
+        parser.add_argument('-s', '--separator', help='csv separator used in the leak file', dest='csv_separator',
+                            required=False)
+        parser.add_argument('-o', '--output', help='emails found in the leak file', dest='output_file', required=False)
+        args = parser.parse_args()
+
+        try:
+            print()
+
+            mails = _read_file(args.mails_file, None)
+            leaks = _read_file(args.leak_file, args.csv_separator)
+            leaked_mails = _get_leaked_mails(mails, leaks)
+
+            if leaked_mails:
+                _print_leaked_mails(leaked_mails)
+
+                if args.output_file:
+                    _write_output_file(args.output_file, leaked_mails)
+            else:
+                print('No matches found')
+        except Exception as e:
+            print(e)
+            exit(-1)
     else:
-        return True
-
-
-def __get_file_len(f):
-    '''
-    Gets the number of non blank lines of a file.
-
-    Return: number of non blank num_lines in a file.
-    '''
-    num_lines = 0
-
-    with open(f) as inf:
-        for line in inf:
-            if line.strip():
-                num_lines = num_lines + 1
-
-    return num_lines
-
-
-if __name__ == "__main__":
-    '''
-    Main
-
-    Return: None
-    '''
-    if __validate_python_version():
-        arguments = docopt(__doc__, version='1.0.0rc2')
-        leaks_file = arguments['--leaklist']
-        accounts_file = arguments['--mylist']
-        output_file = arguments['--output']
-        leak_file_split = arguments['--separator']
-        accounts_file_lines = __get_file_len(accounts_file)
-
-        process_timer = __print_job_start()
-        __search_leak_file()
-        __print_job_end(process_timer)
-
-    else:
-        __print_python_version_error()
-        __exit_program()
+        print(f"Requires python{REQUIRED_INTERPRETER_VERSION}")
