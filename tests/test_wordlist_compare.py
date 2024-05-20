@@ -7,6 +7,11 @@ class TestWordlistCompare(unittest.TestCase):
     def test_normalize(self):
         self.assertEqual('foobar@email.com', _normalize('fOo.bAr@email.com\n'))
 
+    def test_normalize_malformed_mails(self):
+        mails = ['foobar@email.com', 'bobnomail.com', 'alice@email.com']
+        results = list(map(_normalize, mails))
+        self.assertEqual(['foobar@email.com', None, 'alice@email.com'], results)
+
     def test_get_leaked_mails(self):
         leaks = [
             'john_doe@email.com',
