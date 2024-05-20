@@ -35,12 +35,11 @@ def _read_file(file: str, csv_separator: str | None) -> list:
 def _normalize(mails: list) -> list:
     def _normalize(string: str) -> str:
         try:
-            if string:
-                mail = string.strip().lower()
-                user, domain = mail.split('@')
-                normalized_user = user.replace('.', '')
+            mail = string.strip().lower()
+            user, domain = mail.split('@')
+            normalized_user = user.replace('.', '')
 
-                return f"{normalized_user}@{domain}"
+            return f"{normalized_user}@{domain}"
         except ValueError:
             print(f"Malformed mail: {string.rstrip()}")
 
