@@ -73,31 +73,29 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(prog='wordlist_compare.py', description='Checks if mails are in a leak file.')
         parser.add_argument('-l', '--leak', help='leak file', dest='leak_file', required=True)
         parser.add_argument('-m', '--mails', help='mails file', dest='mails_file', required=True)
-        parser.add_argument('-s', '--separator', help='csv separator used in the leak file', dest='csv_separator', required=False)
+        parser.add_argument('-s', '--separator', help='csv separator used in the leak file', dest='csv_separator',
+                            required=False)
         parser.add_argument('-o', '--output', help='emails found in the leak file', dest='output_file', required=False)
         args = parser.parse_args()
 
-        if args.leak_file != args.mails_file:
-            try:
-                print()
+        try:
+            print()
 
-                mails = _read_file(args.mails_file, None)
-                leaks = _read_file(args.leak_file, args.csv_separator)
-                leaked_mails = _get_leaked_mails(mails, leaks)
+            mails = _read_file(args.mails_file, None)
+            leaks = _read_file(args.leak_file, args.csv_separator)
+            leaked_mails = _get_leaked_mails(mails, leaks)
 
-                if leaked_mails:
-                    _print_leaked_mails(leaked_mails)
+            if leaked_mails:
+                _print_leaked_mails(leaked_mails)
 
-                    if args.output_file:
-                        _write_output_file(args.output_file, leaked_mails)
-                else:
-                    print('No matches found')
-            except FileNotFoundError as fee:
-                print(f"'{fee.filename}' no such file or directory")
-            except Exception as e:
-                print(e)
-        else:
-            print(f"Leaks file and mails file are the same: '{args.leak_file}'")
+                if args.output_file:
+                    _write_output_file(args.output_file, leaked_mails)
+            else:
+                print('No matches found')
+        except FileNotFoundError as fee:
+            print(f"'{fee.filename}' no such file or directory")
+        except Exception as e:
+            print(e)
     else:
         print(f"Requires python{REQUIRED_INTERPRETER_VERSION}")
         exit(0)
