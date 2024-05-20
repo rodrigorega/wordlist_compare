@@ -80,8 +80,10 @@ def _write_output_file(output_file: str, matches: list) -> None:
                 f.write('\n'.join(matches))
             except (IOError, OSError):
                 print(f"Error writing {output_file}")
+                exit(-1)
     except (FileNotFoundError, PermissionError, OSError):
         print(f"Error opening {output_file}")
+        exit(-1)
 
 
 if __name__ == '__main__':
@@ -115,6 +117,6 @@ if __name__ == '__main__':
                 print('No matches found')
         except Exception as e:
             print(e)
+            exit(-1)
     else:
         print(f"Requires python{REQUIRED_INTERPRETER_VERSION}")
-        exit(0)
