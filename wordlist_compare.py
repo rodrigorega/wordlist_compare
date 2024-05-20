@@ -27,8 +27,8 @@ def _read_file(file: str, csv_separator: str | None) -> list:
                 return [item[0] for item in map(methodcaller("split", csv_separator), f.readlines())]
             else:
                 return f.readlines()
-    except FileNotFoundError as fee:
-        print(f"'{fee.filename}' no such file or directory")
+    except (FileNotFoundError, OSError) as e:
+        print(f"'{e.filename}' no such file or directory")
         exit(-1)
 
 
@@ -63,8 +63,14 @@ def _print_leaked_mails(mails: list) -> None:
 
 
 def _write_output_file(output_file: str, matches: list) -> None:
-    with open(output_file, 'w') as f:
-        f.write('\n'.join(matches))
+    try:
+        with open(output_file, 'w') as f:
+            try:
+                f.write('\n'.join(matches))
+            except (IOError, OSError):
+                print(f"Error writing {output_file}")
+    except (FileNotFoundError, PermissionError, OSError):
+        print(f"Error opening {output_file}")
 
 
 if __name__ == '__main__':
