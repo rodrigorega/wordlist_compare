@@ -70,8 +70,7 @@ def _print_leaked_mails(mails: list) -> None:
     print('Matches:')
 
     for mail in mails:
-        if mail:
-            print(f"- {mail}")
+        print(f"- {mail}")
 
 
 def _write_output_file(output_file: str, matches: list) -> None:
