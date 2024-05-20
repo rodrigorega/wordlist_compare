@@ -3,7 +3,7 @@
 import argparse
 import signal
 from operator import methodcaller
-from sys import version_info
+from sys import exit, version_info
 from tqdm import tqdm
 from types import FrameType
 
@@ -21,11 +21,15 @@ def _get_interpreter_version():
 
 
 def _read_file(file: str, csv_separator: str | None) -> list:
-    with open(file, 'r') as f:
-        if csv_separator:
-            return [item[0] for item in map(methodcaller("split", csv_separator), f.readlines())]
-        else:
-            return f.readlines()
+    try:
+        with open(file, 'r') as f:
+            if csv_separator:
+                return [item[0] for item in map(methodcaller("split", csv_separator), f.readlines())]
+            else:
+                return f.readlines()
+    except FileNotFoundError as fee:
+        print(f"'{fee.filename}' no such file or directory")
+        exit(-1)
 
 
 def _normalize(string: str) -> str:
@@ -92,8 +96,6 @@ if __name__ == '__main__':
                     _write_output_file(args.output_file, leaked_mails)
             else:
                 print('No matches found')
-        except FileNotFoundError as fee:
-            print(f"'{fee.filename}' no such file or directory")
         except Exception as e:
             print(e)
     else:
