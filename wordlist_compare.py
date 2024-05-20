@@ -43,15 +43,15 @@ def _normalize(mails: list) -> list:
         except ValueError:
             print(f"Malformed mail: {string.rstrip()}")
 
-    normalized_mails = []
+    normalized_mails = set()
 
     for mail in mails:
         normalized_mail = _normalize(mail)
 
         if normalized_mail:
-            normalized_mails.append(normalized_mail)
+            normalized_mails.add(normalized_mail)
 
-    return normalized_mails
+    return list(normalized_mails)
 
 
 def _get_leaked_mails(mails: list, leaks: list) -> list:
@@ -60,7 +60,7 @@ def _get_leaked_mails(mails: list, leaks: list) -> list:
     normalized_leaks = _normalize(leaks)
 
     for mail in tqdm(normalized_mails):
-        if mail in normalized_leaks and mail not in leaked_mails:
+        if mail in normalized_leaks:
             leaked_mails.append(mail)
 
     return leaked_mails
