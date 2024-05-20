@@ -32,21 +32,33 @@ def _read_file(file: str, csv_separator: str | None) -> list:
         exit(-1)
 
 
-def _normalize(string: str) -> str:
-    try:
-        mail = string.strip().lower()
-        user, domain = mail.split('@')
-        normalized_user = user.replace('.', '')
+def _normalize(mails: list) -> list:
+    def _normalize(string: str) -> str:
+        try:
+            if string:
+                mail = string.strip().lower()
+                user, domain = mail.split('@')
+                normalized_user = user.replace('.', '')
 
-        return f"{normalized_user}@{domain}"
-    except ValueError:
-        print(f"Malformed mail: {string.rstrip()}")
+                return f"{normalized_user}@{domain}"
+        except ValueError:
+            print(f"Malformed mail: {string.rstrip()}")
+
+    normalized_mails = []
+
+    for mail in mails:
+        normalized_mail = _normalize(mail)
+
+        if normalized_mail:
+            normalized_mails.append(normalized_mail)
+
+    return normalized_mails
 
 
 def _get_leaked_mails(mails: list, leaks: list) -> list:
     leaked_mails = []
-    normalized_mails = map(_normalize, mails)
-    normalized_leaks = map(_normalize, leaks)
+    normalized_mails = _normalize(mails)
+    normalized_leaks = _normalize(leaks)
 
     for mail in tqdm(normalized_mails):
         if mail in normalized_leaks and mail not in leaked_mails:
@@ -59,7 +71,8 @@ def _print_leaked_mails(mails: list) -> None:
     print('Matches:')
 
     for mail in mails:
-        print(f"- {mail}")
+        if mail:
+            print(f"- {mail}")
 
 
 def _write_output_file(output_file: str, matches: list) -> None:
