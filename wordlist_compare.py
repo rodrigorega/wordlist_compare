@@ -27,8 +27,14 @@ def _read_file(file: str, csv_separator: str | None) -> list:
                 return [item[0] for item in map(methodcaller("split", csv_separator), f.readlines())]
             else:
                 return f.readlines()
-    except (FileNotFoundError, OSError) as e:
-        print(f"'{e.filename}' no such file or directory")
+    except FileNotFoundError as fne:
+        print(f"'{fne.filename}' no such file or directory")
+        exit(-1)
+    except PermissionError as pe:
+        print(f"Permission denied: '{file}'")
+        exit(-1)
+    except OSError as ose:
+        print(f"'{file}' OSError: {ose}")
         exit(-1)
 
 
@@ -73,16 +79,18 @@ def _print_leaked_mails(mails: list) -> None:
         print(f"- {mail}")
 
 
-def _write_output_file(output_file: str, matches: list) -> None:
+def _write_output_file(file: str, matches: list) -> None:
     try:
-        with open(output_file, 'w') as f:
-            try:
-                f.write('\n'.join(matches))
-            except (IOError, OSError):
-                print(f"Error writing {output_file}")
-                exit(-1)
-    except (FileNotFoundError, PermissionError, OSError):
-        print(f"Error opening {output_file}")
+        with open(file, 'w') as f:
+            f.write('\n'.join(matches))
+    except FileNotFoundError as fne:
+        print(f"'{fne.filename}' no such file or directory")
+        exit(-1)
+    except PermissionError as pe:
+        print(f"Permission denied: '{file}'")
+        exit(-1)
+    except OSError as ose:
+        print(f"'{file}' OSError: {ose}")
         exit(-1)
 
 
@@ -96,8 +104,7 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(prog='wordlist_compare.py', description='Checks if mails are in a leak file.')
         parser.add_argument('-l', '--leak', help='leak file', dest='leak_file', required=True)
         parser.add_argument('-m', '--mails', help='mails file', dest='mails_file', required=True)
-        parser.add_argument('-s', '--separator', help='csv separator used in the leak file', dest='csv_separator',
-                            required=False)
+        parser.add_argument('-s', '--separator', help='csv separator used in the leak file', dest='csv_separator', required=False)
         parser.add_argument('-o', '--output', help='emails found in the leak file', dest='output_file', required=False)
         args = parser.parse_args()
 
