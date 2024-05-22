@@ -28,7 +28,7 @@ def _read_file(file: str, csv_separator: str | None) -> list:
             else:
                 return f.readlines()
     except FileNotFoundError as fnfe:
-        print(f"'{fnfex.filename}' no such file or directory")
+        print(f"'{fnfe.filename}' no such file or directory")
         exit(-1)
     except PermissionError:
         print(f"Permission denied: '{file}'")
