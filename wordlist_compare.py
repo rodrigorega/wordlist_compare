@@ -27,10 +27,10 @@ def _read_file(file: str, csv_separator: str | None) -> list:
                 return [item[0] for item in map(methodcaller("split", csv_separator), f.readlines())]
             else:
                 return f.readlines()
-    except FileNotFoundError as fne:
-        print(f"'{fne.filename}' no such file or directory")
+    except FileNotFoundError as fnfe:
+        print(f"'{fnfex.filename}' no such file or directory")
         exit(-1)
-    except PermissionError as pe:
+    except PermissionError:
         print(f"Permission denied: '{file}'")
         exit(-1)
     except OSError as ose:
@@ -83,10 +83,10 @@ def _write_output_file(file: str, matches: list) -> None:
     try:
         with open(file, 'w') as f:
             f.write('\n'.join(matches))
-    except FileNotFoundError as fne:
-        print(f"'{fne.filename}' no such file or directory")
+    except FileNotFoundError as fnfe:
+        print(f"'{fnfe.filename}' no such file or directory")
         exit(-1)
-    except PermissionError as pe:
+    except PermissionError:
         print(f"Permission denied: '{file}'")
         exit(-1)
     except OSError as ose:
